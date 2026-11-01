@@ -1,0 +1,20 @@
+{"id":"q01","question":"vLLM 的核心优化技术是什么？","answerable":true,"gold_sources":["01-45A样卷与答案.md","02-考点地图与速记.md"]}
+{"id":"q02","question":"静态批处理和连续批处理有什么区别？","answerable":true,"gold_sources":["02-考点地图与速记.md","04-操作题四段式模板.md"]}
+{"id":"q03","question":"PagedAttention 解决了什么问题？","answerable":true,"gold_sources":["02-考点地图与速记.md","04-操作题四段式模板.md"]}
+{"id":"q04","question":"投机解码在什么情况下反而会变慢？","answerable":true,"gold_sources":["02-考点地图与速记.md","04-操作题四段式模板.md"]}
+{"id":"q05","question":"TTFT 和 TPOT 分别是什么？","answerable":true,"gold_sources":["02-考点地图与速记.md"]}
+{"id":"q06","question":"RAG 的完整链路包含哪些步骤？","answerable":true,"gold_sources":["02-考点地图与速记.md","04-操作题四段式模板.md"]}
+{"id":"q07","question":"多跳检索主要解决什么问题？","answerable":true,"gold_sources":["01-45A样卷与答案.md","02-考点地图与速记.md"]}
+{"id":"q08","question":"重排序在 RAG 里起什么作用？","answerable":true,"gold_sources":["02-考点地图与速记.md"]}
+{"id":"q09","question":"RAG 评测常用哪些指标？","answerable":true,"gold_sources":["01-45A样卷与答案.md","02-考点地图与速记.md"]}
+{"id":"q10","question":"Agent 的三形态怎么演进？","answerable":true,"gold_sources":["01-45A样卷与答案.md","02-考点地图与速记.md"]}
+{"id":"q11","question":"Agent 的终止条件有哪些？","answerable":true,"gold_sources":["02-考点地图与速记.md","05-上机综合题30分钟.md"]}
+{"id":"q12","question":"治理的四道闸门是什么？","answerable":true,"gold_sources":["02-考点地图与速记.md","04-操作题四段式模板.md"]}
+{"id":"q13","question":"人在回路在什么情况下触发？","answerable":true,"gold_sources":["01-45A样卷与答案.md","02-考点地图与速记.md"]}
+{"id":"q14","question":"HTTP 401、400、429 有什么区别？","answerable":true,"gold_sources":["01-45A样卷与答案.md","03-客观题打法与陷阱.md"]}
+{"id":"q15","question":"Chinchilla 的结论是什么？","answerable":true,"gold_sources":["02-考点地图与速记.md","01-45A样卷与答案.md"]}
+{"id":"q16","question":"2026 年诺贝尔物理学奖得主是谁？","answerable":false,"gold_sources":[]}
+{"id":"q17","question":"上海地铁 2 号线末班车是几点？","answerable":false,"gold_sources":[]}
+{"id":"q18","question":"公司年假政策有几天？","answerable":false,"gold_sources":[]}
+{"id":"q19","question":"如何用 COBOL 写冒泡排序？","answerable":false,"gold_sources":[]}
+{"id":"q20","question":"今天上海天气怎么样？","answerable":false,"gold_sources":[]}
