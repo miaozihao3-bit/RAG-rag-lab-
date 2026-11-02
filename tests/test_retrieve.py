@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 
 from rag.retrieve import TfidfRetriever, mmr_select
 from rag.types import Chunk
@@ -20,7 +19,6 @@ def test_tfidf_search_returns_relevant_chunk():
     assert hits[0].score > 0
 
 
-@pytest.mark.xfail(raises=NotImplementedError, strict=False)
 def test_mmr_prefers_diversity_over_near_duplicate():
     query = np.array([1.0, 0.0, 0.0])
     candidates = np.array(

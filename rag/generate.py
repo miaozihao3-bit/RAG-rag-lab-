@@ -8,28 +8,38 @@ from .types import Answer, Hit, Source
 
 
 def should_refuse(top_score: float, threshold: float = REFUSE_THRESHOLD) -> bool:
-    """TODO(M4): 判断是否应该拒答。
+    """最高检索分低于阈值就拒答；一个命中都没有也拒答。
 
-    要求：
-    1. 返回 True/False；
-    2. 最高检索分低于 threshold 时拒答；
-    3. 没有任何命中也应拒答。
+    这就是一个阈值判定：分数不够，宁可说"没有"，也不让模型硬编。
     """
-    raise NotImplementedError("M4: 请实现 should_refuse")
+    if top_score <= 0:
+        return True
+    return top_score < threshold
 
 
 def build_prompt(question: str, hits: List[Hit]) -> str:
-    """TODO(M4): 组装带引用约束的 Prompt。
+    """组装带引用约束的 Prompt：只许用资料、逐条标 [n]、不够就说不足。
 
-    要求：
-    1. 只允许使用资料中的事实，不许编造；
-    2. 每个结论后用 [1][2] 标注来源编号；
-    3. 资料不足时明确输出“资料不足，无法回答”，不要猜；
-    4. 包含问题、全部候选片段（编号 + 来源 + 标题 + 正文）。
-
-    测试在 tests/test_generate.py；写完跑 pytest tests/test_generate.py。
+    Prompt 里的三条规矩，对应的就是"不许编、要能查、答不了就认"。
     """
-    raise NotImplementedError("M4: 请实现 build_prompt")
+    blocks = []
+    for i, hit in enumerate(hits, 1):
+        heading = hit.chunk.heading or "正文"
+        blocks.append(
+            "[%d] 来源：%s ｜ 小节：%s\n%s"
+            % (i, hit.chunk.source, heading, hit.chunk.text.strip())
+        )
+    context = "\n\n".join(blocks) if blocks else "（无资料）"
+
+    return (
+        "你是备考知识库助手。三条规则必须遵守：\n"
+        "1. 只能使用下面资料里的事实，不许编造。\n"
+        "2. 每个结论后面用 [1][2] 标注出处编号。\n"
+        "3. 资料不足时直接输出“资料不足，无法回答”，不要猜。\n\n"
+        "资料：\n%s\n\n"
+        "问题：%s\n\n"
+        "答案：" % (context, question)
+    )
 
 
 def simple_prompt(question: str, hits: List[Hit]) -> str:

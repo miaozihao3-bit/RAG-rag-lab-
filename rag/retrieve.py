@@ -15,30 +15,49 @@ def mmr_select(
     k: int,
     lambda_mult: float = 0.5,
 ) -> List[int]:
-    """TODO(M3): 最大边际相关性（MMR）重排。
+    """最大边际相关性（MMR）重排。
 
-    输入：
-      query_vec: 1D 数组，查询向量
-      candidate_vecs: 2D 数组，候选片段向量（每行一个）
-      candidate_indices: 候选片段在原始索引中的下标（仅用于调试/返回）
-      k: 选几个
-      lambda_mult: 相关性权重；1=纯相关性，0=纯多样性
-
-    返回：
-      list[int]，选中的下标，**指向 candidate_vecs 的行号**（0..len-1），
-      按选择顺序排列。
-
-    要求：
-      1. 用余弦相似度（先对向量做 L2 归一化）；
-      2. 第一轮选与 query 最相似的候选；
-      3. 之后每轮选
-         lambda*sim(query, doc) - (1-lambda)*max(sim(doc, selected))
-         最大的候选；
-      4. 已选的不要重复选。
-
-    测试在 tests/test_retrieve.py；写完跑 pytest tests/test_retrieve.py。
+    一句话：选第 2 条时，不只看"像不像问题"，还要看"像不像已经选中的" ——
+    太像就扣分。返回的是 candidate_vecs 的行号，按选择顺序排列。
     """
-    raise NotImplementedError("M3: 请实现 mmr_select")
+    vecs = np.asarray(candidate_vecs, dtype=float)
+    if vecs.ndim != 2 or len(vecs) == 0 or k <= 0:
+        return []
+
+    k = min(int(k), len(vecs))
+
+    # 1. 先做 L2 归一化，之后点积就是余弦相似度
+    query = np.asarray(query_vec, dtype=float).ravel()
+    query_norm = float(np.linalg.norm(query)) or 1.0
+    query = query / query_norm
+
+    norms = np.linalg.norm(vecs, axis=1, keepdims=True)
+    norms[norms == 0] = 1.0
+    vecs = vecs / norms
+
+    sim_query = vecs.dot(query)      # 每个候选与问题的相似度
+    sim_cross = vecs.dot(vecs.T)     # 候选两两之间的相似度
+
+    # 2. 第一轮直接选最相关的
+    selected: List[int] = [int(np.argmax(sim_query))]
+
+    # 3. 之后每轮：相关性 − 与已选的最大相似度
+    while len(selected) < k:
+        best_pos = -1
+        best_score = None
+        for i in range(len(vecs)):
+            if i in selected:
+                continue
+            redundancy = float(max(sim_cross[i, j] for j in selected))
+            score = lambda_mult * float(sim_query[i]) - (1.0 - lambda_mult) * redundancy
+            if best_score is None or score > best_score:
+                best_score = score
+                best_pos = i
+        if best_pos < 0:
+            break
+        selected.append(best_pos)
+
+    return selected
 
 
 class TfidfRetriever:

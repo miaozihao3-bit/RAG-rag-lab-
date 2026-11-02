@@ -1,5 +1,3 @@
-import pytest
-
 from rag.ingest import chunk_markdown, simple_chunk
 
 
@@ -15,7 +13,6 @@ def test_simple_chunk_empty_text():
     assert simple_chunk("", "demo.md") == []
 
 
-@pytest.mark.xfail(raises=NotImplementedError, strict=False)
 def test_chunk_markdown_heading_and_overlap():
     text = (
         "# 总标题\n\n"

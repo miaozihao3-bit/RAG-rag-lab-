@@ -1,5 +1,3 @@
-import pytest
-
 from rag.generate import build_prompt, extractive_answer, generate_answer, should_refuse
 from rag.types import Chunk, Hit
 
@@ -26,13 +24,12 @@ def test_extractive_answer_contains_source_marker():
     assert "01-45A样卷与答案.md" in text
 
 
-def test_generate_answer_refuses_low_score_without_m4():
+def test_generate_answer_refuses_low_score():
     answer = generate_answer("一个笔记里没有的问题", _hits(0.01), threshold=0.2)
     assert answer.refused is True
     assert answer.sources == []
 
 
-@pytest.mark.xfail(raises=NotImplementedError, strict=False)
 def test_build_prompt_contains_question_and_refusal_rule():
     prompt = build_prompt("vLLM 的核心技术？", _hits())
     assert "vLLM 的核心技术" in prompt
@@ -40,7 +37,6 @@ def test_build_prompt_contains_question_and_refusal_rule():
     assert ("资料不足" in prompt) or ("无法回答" in prompt)
 
 
-@pytest.mark.xfail(raises=NotImplementedError, strict=False)
 def test_should_refuse_threshold():
     assert should_refuse(0.05, 0.2)
     assert not should_refuse(0.5, 0.2)

@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 from typing import List, Tuple
 
@@ -62,25 +63,85 @@ def simple_chunk(
     return chunks
 
 
+# 只认 # / ## / ### 三级标题，且必须是行首
+HEADING_RE = re.compile(r"^(#{1,3})\s+(.+)$", re.M)
+
+
+def _section_slice(text: str) -> List[Tuple[int, int, str]]:
+    """按标题切成 (正文起点, 正文终点, 标题路径)。"""
+    marks = [
+        (m.start(), m.end(), len(m.group(1)), m.group(2).strip())
+        for m in HEADING_RE.finditer(text)
+    ]
+    if not marks:
+        return [(0, len(text), "")]
+
+    sections: List[Tuple[int, int, str]] = []
+    if marks[0][0] > 0:
+        sections.append((0, marks[0][0], ""))
+
+    stack: List[Tuple[int, str]] = []
+    for i, (_start, head_end, level, title) in enumerate(marks):
+        while stack and stack[-1][0] >= level:
+            stack.pop()
+        stack.append((level, title))
+        path = " > ".join(item[1] for item in stack)
+        body_end = marks[i + 1][0] if i + 1 < len(marks) else len(text)
+        sections.append((head_end, body_end, path))
+
+    return sections
+
+
 def chunk_markdown(
     text: str,
     source: str,
     max_chars: int = CHUNK_SIZE,
     overlap: int = CHUNK_OVERLAP,
 ) -> List[Chunk]:
-    """TODO(M2): 标题感知切分。
+    """标题感知切分：先按标题切成 section，再在 section 内部按窗口打包。
 
-    要求：
-    1. 识别 Markdown 标题（# / ## / ###），把当前标题路径写进 Chunk.heading；
-    2. 按段落打包，单块不超过 max_chars；
-    3. 相邻块保留 overlap 个字符的上下文；
-    4. 返回 Chunk 列表，start/end 指向原文位置，供引用使用。
-
-    提示：可以先按标题切成 section，再对每个 section 复用 simple_chunk，
-    最后把 heading 补上。不要直接抄 simple_chunk，先想清楚"标题边界"和
-    "overlap 属于同一 section 还是跨 section"。
+    和 simple_chunk 的区别只有两点：
+    1. 下刀位置不跨 section，标题是天生的语义边界；
+    2. 每块记下当前标题路径，检索结果就能显示"出自哪一节"。
     """
-    raise NotImplementedError("M2: 请实现 chunk_markdown（标题感知 + overlap）")
+    if not text.strip():
+        return []
+
+    chunks: List[Chunk] = []
+    idx = 0
+
+    for body_start, body_end, heading in _section_slice(text):
+        start = body_start
+        while start < body_end:
+            end = min(start + max_chars, body_end)
+
+            if end < body_end:
+                # 优先在段落边界切，其次在换行处切
+                cut = text.rfind("\n\n", start + max_chars // 2, end)
+                if cut == -1:
+                    cut = text.rfind("\n", start + max_chars // 2, end)
+                if cut != -1:
+                    end = cut
+
+            piece = text[start:end].strip()
+            if piece:
+                chunks.append(
+                    Chunk(
+                        id="%s-%03d" % (source, idx),
+                        source=source,
+                        heading=heading,
+                        text=piece,
+                        start=start,
+                        end=end,
+                    )
+                )
+                idx += 1
+
+            if end >= body_end:
+                break
+            start = max(end - overlap, start + 1)
+
+    return chunks
 
 
 def build_chunks(mode: str = "auto") -> List[Chunk]:
